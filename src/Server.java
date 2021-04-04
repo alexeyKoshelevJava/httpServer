@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 public class Server {
     private int port;
     private String directory;
+    ExecutorService service = Executors.newFixedThreadPool(60);
 
 
     public Server(int port, String directory) {
@@ -19,13 +20,13 @@ public class Server {
         this.directory = directory;
     }
 
-    private void start() throws IOException {
+    void start() throws IOException {
 
         ServerSocket serverSocket = new ServerSocket(port);
 
         while (true) {
             Socket socket = serverSocket.accept();
-            ExecutorService service = Executors.newFixedThreadPool(60);
+
 
             service.execute(new MyThread(socket, this.directory));
 
@@ -37,10 +38,6 @@ public class Server {
     }
 
 
-    public static void main(String[] args) throws IOException {
 
-        Server server = new Server(8000, "C:\\TestHttpAnd Web\\Files");
-        server.start();
-    }
 }
 

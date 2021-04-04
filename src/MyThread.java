@@ -7,7 +7,7 @@ import java.util.List;
 public class MyThread extends Thread {
     private final Socket socket;
     private final String directory;
-    private final List<String> validPath = List.of("/text.txt", "/spring.svg", "/streptatest4.png", "/index.html");
+    private final List<String> validPath = List.of("/text.txt", "/spring.svg", "/streptatest4.png", "/index.html","/VID-1.mp4");
     private static final String NOT_FOUND_MESSAGE = "NOT FOUND";
 
     public MyThread(Socket socket, String directory) {
@@ -17,7 +17,7 @@ public class MyThread extends Thread {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
 
         try (
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -25,35 +25,37 @@ public class MyThread extends Thread {
 
 
             String line = in.readLine();
-            System.out.println(line);
+                        System.out.println(line);
+
+            String[] request;
+            if (line != null) {
+                request = line.split(" ");
 
 
-            String[] request = line.split(" ");
+                String url = request[1];
+                Path filePath = Path.of(directory + url);
 
-            String url = request[1];
-            Path filePath = Path.of(directory + url);
-
-            String mineType = Files.probeContentType(filePath);
-            System.out.println(Thread.currentThread() + " выполняю запрос " + mineType);
+                String mineType = Files.probeContentType(filePath);
+                System.out.println(Thread.currentThread() + " выполняю запрос " + mineType);
 
 
-            if (validPath.contains(url)) {
-                byte[] fileBytes = Files.readAllBytes(filePath);
-                sendHeader(out, 200, "OK", mineType, fileBytes);
-                out.write(fileBytes);
-                out.flush();
+                if (validPath.contains(url)) {
+                    byte[] fileBytes = Files.readAllBytes(filePath);
+                    sendHeader(out, 200, "OK", mineType, fileBytes);
+                    out.write(fileBytes);
+                    out.flush();
 
-            } else {
+                } else {
 
-                sendHeader(out, 400, NOT_FOUND_MESSAGE, mineType, NOT_FOUND_MESSAGE.getBytes());
-                out.write(NOT_FOUND_MESSAGE.getBytes());
+                    sendHeader(out, 400, NOT_FOUND_MESSAGE, mineType, NOT_FOUND_MESSAGE.getBytes());
+                    out.write(NOT_FOUND_MESSAGE.getBytes());
 
+                }
             }
 
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch(IOException e){
+                e.printStackTrace();
+            }
 
 
     }
